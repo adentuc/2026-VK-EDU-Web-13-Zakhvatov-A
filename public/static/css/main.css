@@ -1,0 +1,50 @@
+body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    font-family: Arial, sans-serif;
+    color: #212529;
+}
+.shell { width: 100%; max-width: 1140px; margin: 0 auto; padding: 0 15px; }
+header { background: #f2f2f2; border-bottom: 1px solid #ccc; }
+.topbar { display: flex; align-items: center; flex-wrap: wrap; gap: 20px; padding-top: 15px; padding-bottom: 15px; }
+.brand { font-size: 26px; font-weight: bold; color: #212529; text-decoration: none; }
+.search { flex: 1; }
+.account { display: flex; align-items: center; gap: 12px; }
+.layout { display: flex; flex: 1; gap: 30px; padding-top: 25px; padding-bottom: 30px; }
+main { flex: 1; min-width: 0; }
+.sidebar { width: 230px; }
+h1 { font-size: 28px; margin-bottom: 20px; }
+h2 { font-size: 22px; }
+.tabs { display: flex; gap: 20px; margin-bottom: 20px; }
+.tabs .active { font-weight: bold; }
+.question-card { display: flex; gap: 15px; border: 1px solid #ccc; padding: 15px; margin-bottom: 15px; }
+.question-body { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.question-title { font-size: 20px; }
+.excerpt { margin: 10px 0; }
+.vote { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+.vote button { width: 32px; border: 1px solid #aaa; background: #eee; }
+.vote button[aria-pressed=true] { background: #0d6efd; color: white; }
+.tag { display: inline-block; margin: 0 6px 5px 0; }
+.meta { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 13px; color: #555; margin-top: 12px; }
+.avatar { width: 30px; height: 30px; }
+.side-block { margin-bottom: 25px; }
+.member { margin-bottom: 8px; }
+.member small { margin-left: 8px; color: #555; }
+.pagination { gap: 5px; flex-wrap: wrap; }
+.form-panel { max-width: 600px; }
+.field { margin-bottom: 18px; }
+.form-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 15px; }
+.profile-avatar { width: 80px; height: 80px; margin-bottom: 15px; }
+.answer-form { margin-top: 25px; }
+.accepted { color: green; }
+footer { padding: 15px 0; background: #f2f2f2; border-top: 1px solid #ccc; }
+@media (max-width: 767px) {
+    .topbar { gap: 12px; }
+    .search { order: 3; flex-basis: 100%; }
+    .account { margin-left: auto; }
+    .layout { flex-direction: column; }
+    .sidebar { width: 100%; }
+    .question-card { padding: 10px; gap: 10px; }
+}
