@@ -1,0 +1,8 @@
+{% load static %}<section class="side-block">
+<h2>Популярные теги</h2>{% for tag in popular_tags %}<a class="tag" href="{% url 'questions:tag' tag %}">{{ tag }}</a>{% endfor %}</section>
+<section class="side-block">
+<h2>Лучшие участники</h2>{% for member in best_members %}<div class="member">
+<img src="{% static 'img/avatar.svg' %}" class="avatar" alt="">
+<span>{{ member.name }}</span>
+<small>{{ member.rating }}</small>
+</div>{% endfor %}</section>
