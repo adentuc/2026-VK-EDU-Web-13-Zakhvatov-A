@@ -30,12 +30,13 @@
 <h1>Присоединяйтесь к AskSpace</h1>
 
 <div class="form-panel">
-<div class="alert alert-danger" role="alert">Проверьте правильность заполнения полей.</div>
+<div class="alert alert-danger" role="alert">Не удалось зарегистрироваться. Исправьте отмеченные поля.</div>
 <form method="get" enctype="multipart/form-data" novalidate>
 <div class="field">
 <label class="form-label" for="id_email">Электронная почта</label>
-<input aria-invalid="true" type="email" name="email" maxlength="254" class="form-control" required aria-describedby="id_email_helptext" id="id_email">
-<div class="form-text" id="id_email_helptext">Введите корректный email, например name@example.com</div>
+<input type="email" name="email" value="wrong-email" maxlength="254" class="form-control is-invalid" required aria-describedby="id_email_helptext id_email_error" id="id_email" aria-invalid="true">
+<div class="invalid-feedback" id="id_email_error">Введите корректный адрес электронной почты.</div>
+<div class="form-text" id="id_email_helptext">Например, name@example.com</div>
 </div>
 <div class="field">
 <label class="form-label" for="id_nickname">Никнейм</label>
@@ -48,7 +49,8 @@
 </div>
 <div class="field">
 <label class="form-label" for="id_password_repeat">Повторите пароль</label>
-<input type="password" name="password_repeat" maxlength="128" class="form-control" required id="id_password_repeat">
+<input type="password" name="password_repeat" maxlength="128" class="form-control is-invalid" required id="id_password_repeat" aria-describedby="id_password_repeat_error" aria-invalid="true">
+<div class="invalid-feedback" id="id_password_repeat_error">Пароли не совпадают.</div>
 </div>
 <div class="field">
 <label class="form-label" for="id_avatar">Аватар</label>

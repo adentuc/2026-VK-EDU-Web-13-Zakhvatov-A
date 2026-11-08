@@ -30,15 +30,17 @@
 <h1>С возвращением!</h1>
 
 <div class="form-panel">
-<div class="alert alert-danger" role="alert">Проверьте правильность заполнения полей.</div>
+<div class="alert alert-danger" role="alert">Не удалось войти. Проверьте логин и пароль.</div>
 <form method="get" enctype="multipart/form-data" novalidate>
 <div class="field">
 <label class="form-label" for="id_login">Логин</label>
-<input type="text" name="login" maxlength="80" class="form-control" required id="id_login">
+<input type="text" name="login" maxlength="80" class="form-control is-invalid" required id="id_login" aria-describedby="id_login_error" aria-invalid="true">
+<div class="invalid-feedback" id="id_login_error">Введите логин.</div>
 </div>
 <div class="field">
 <label class="form-label" for="id_password">Пароль</label>
-<input type="password" name="password" maxlength="128" class="form-control" required id="id_password">
+<input type="password" name="password" maxlength="128" class="form-control is-invalid" required id="id_password" aria-describedby="id_password_error" aria-invalid="true">
+<div class="invalid-feedback" id="id_password_error">Введите пароль.</div>
 </div>
 <div class="form-actions">
 <button class="btn btn-primary" type="submit">Войти</button>

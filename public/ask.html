@@ -30,11 +30,12 @@
 <h1>Новый вопрос</h1>
 
 <div class="form-panel">
-<div class="alert alert-danger" role="alert">Проверьте правильность заполнения полей.</div>
+<div class="alert alert-danger" role="alert">Не удалось добавить вопрос. Исправьте отмеченные поля.</div>
 <form method="get" enctype="multipart/form-data" novalidate>
 <div class="field">
 <label class="form-label" for="id_title">Заголовок</label>
-<input type="text" name="title" maxlength="150" class="form-control" required aria-describedby="id_title_helptext" id="id_title">
+<input type="text" name="title" maxlength="150" class="form-control is-invalid" required aria-describedby="id_title_helptext id_title_error" id="id_title" aria-invalid="true">
+<div class="invalid-feedback" id="id_title_error">Введите заголовок вопроса.</div>
 <div class="form-text" id="id_title_helptext">До 150 символов. Кратко сформулируйте суть вопроса.</div>
 </div>
 <div class="field">
@@ -45,7 +46,8 @@
 </div>
 <div class="field">
 <label class="form-label" for="id_tags">Теги</label>
-<input type="text" name="tags" maxlength="100" class="form-control" required aria-describedby="id_tags_helptext" id="id_tags">
+<input type="text" name="tags" maxlength="100" class="form-control is-invalid" required aria-describedby="id_tags_helptext id_tags_error" id="id_tags" aria-invalid="true">
+<div class="invalid-feedback" id="id_tags_error">Укажите не более трёх тегов через запятую.</div>
 <div class="form-text" id="id_tags_helptext">Не более трёх тегов через запятую, например: python, django.</div>
 </div>
 <div class="form-actions">
