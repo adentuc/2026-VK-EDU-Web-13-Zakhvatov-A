@@ -19,8 +19,8 @@
 <input class="form-control" id="search" name="q" placeholder="Найти вопрос или тему…" value="{{ search|default:'' }}" maxlength="200">
 </form>
 <a class="btn btn-primary" href="{% url 'questions:ask' %}">Задать вопрос</a>
-<nav class="account" aria-label="Аккаунт">{% if show_user_menu %}<img class="avatar" src="{% static 'img/avatar.svg' %}" alt="">
-<a href="{% url 'core:profile' %}">Антон</a>
+<nav class="account" aria-label="Аккаунт">{% if user.is_authenticated %}<img class="avatar" src="{% static 'img/avatar.svg' %}" alt="">
+<a href="{% url 'core:profile' %}">{{ user.username }}</a>
 <a href="{% url 'core:login' %}">Выход</a>{% else %}<a href="{% url 'core:login' %}">Войти</a>
 <a href="{% url 'core:signup' %}">Регистрация</a>{% endif %}</nav>
 </div>

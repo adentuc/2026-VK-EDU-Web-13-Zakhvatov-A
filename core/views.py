@@ -19,4 +19,4 @@ def signup(request):
 
 @require_http_methods(['GET', 'POST'])
 def profile(request):
-    return form_page(request, 'profile.html', ProfileForm, 'Сохранить изменения', show_user_menu=True, initial={'email': 'anton@example.com', 'nickname': 'Антон'})
+    return form_page(request, 'profile.html', ProfileForm, 'Сохранить изменения', initial={'email': 'anton@example.com', 'nickname': 'Антон'})

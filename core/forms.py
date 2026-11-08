@@ -3,8 +3,11 @@ from django import forms
 class StyledForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        for field in self.fields.values():
+        for name, field in self.fields.items():
             field.widget.attrs['class'] = 'form-control'
+            if self.is_bound and name in self.errors:
+                field.widget.attrs['class'] += ' is-invalid'
+                field.widget.attrs['aria-invalid'] = 'true'
 
 class LoginForm(StyledForm):
     login = forms.CharField(label='Логин', max_length=80)
