@@ -16,3 +16,6 @@ Tasks.txt
 tasks.txt
 Задания.txt
 /docs/source/
+
+.env.local
+.env.docker
