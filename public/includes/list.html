@@ -1,0 +1,7 @@
+
+<h1>{{ heading }}</h1>
+
+<nav class="tabs" aria-label="Сортировка вопросов">
+<a class="{% if active_tab == 'new' %}active{% endif %}" href="{% url 'questions:index' %}">Новые вопросы</a>
+<a class="{% if active_tab == 'hot' %}active{% endif %}" href="{% url 'questions:hot' %}">Популярные</a>
+</nav>{% if search %}<p>Результаты поиска: «{{ search }}»</p>{% endif %}{% for question in page_obj %}{% include 'includes/question_card.html' %}{% empty %}<p class="empty">Вопросов пока нет. Попробуйте другую тему или поисковый запрос.</p>{% endfor %}{% include 'includes/pagination.html' %}
