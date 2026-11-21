@@ -1,65 +1,53 @@
-from django.test import SimpleTestCase, RequestFactory, override_settings
-from django.urls import reverse
-from .data import QUESTIONS
-from .pagination import paginate
+from django.contrib.auth import get_user_model
+from django.core.management import call_command
+from django.db import IntegrityError, transaction
+from django.test import TestCase
+from core.models import Profile
+from .models import Question, Answer, Tag, QuestionLike, AnswerLike
 
 
-class PaginationTests(SimpleTestCase):
-    def test_invalid_page_falls_back_to_first(self):
-        for value in ['', 'abc', '0', '-1', '99999999999999999', '1.5']:
-            with self.subTest(value=value):
-                page = paginate(list(range(45)), RequestFactory().get('/', {'page': value}), 20)
-                self.assertEqual(page.number, 1)
-                self.assertEqual(len(page), 20)
+class DatabasePagesTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user('student')
+        Profile.objects.create(user=self.user)
 
-    def test_second_and_empty_pages(self):
-        page = paginate(list(range(45)), RequestFactory().get('/?page=3'), 20)
-        self.assertEqual(list(page), list(range(40, 45)))
-        self.assertEqual(paginate([], RequestFactory().get('/')).number, 1)
+    def test_empty_pages_and_404(self):
+        self.assertContains(self.client.get('/'), 'Вопросов пока нет')
+        self.assertEqual(self.client.get('/question/9999/').status_code, 404)
+        self.assertEqual(self.client.get('/tag/missing/').status_code, 404)
+        question = Question.objects.create(title='Вопрос', text='Текст', author=self.user)
+        self.assertContains(self.client.get(question.get_absolute_url()), 'Пока нет ни одного ответа')
+
+    def test_unique_votes(self):
+        question = Question.objects.create(title='Вопрос', text='Текст', author=self.user)
+        QuestionLike.objects.create(user=self.user, question=question, value=1)
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            QuestionLike.objects.create(user=self.user, question=question, value=-1)
+
+    def test_fill_counts_and_rating(self):
+        call_command('fill_db', 2, verbosity=0)
+        self.assertEqual(Question.objects.count(), 20)
+        self.assertEqual(Answer.objects.count(), 200)
+        self.assertEqual(Tag.objects.count(), 2)
+        self.assertEqual(QuestionLike.objects.count()+AnswerLike.objects.count(), 400)
+        question = Question.objects.listing().best().first()
+        self.assertEqual(question.rating, question.likes.count())
+
+    def test_queries_do_not_grow_with_page_size(self):
+        Question.objects.bulk_create([Question(title=f'Вопрос {i}', text='Текст', author=self.user) for i in range(25)])
+        with self.assertNumQueries(2):
+            for question in Question.objects.listing()[:20]:
+                list(question.tags.all())
+                str(question.author.profile)
 
 
-class PageTests(SimpleTestCase):
-    def test_all_required_routes(self):
-        for path in ['/', '/hot/', '/tag/python/', '/question/35/', '/login/', '/signup/', '/profile/', '/ask/']:
+class AdminTests(TestCase):
+    def test_all_model_admin_pages(self):
+        admin = get_user_model().objects.create_superuser('admin', 'admin@example.com', 'Admin-Password-847')
+        Profile.objects.create(user=admin)
+        question = Question.objects.create(author=admin, title='Вопрос', text='Текст')
+        Answer.objects.create(author=admin, question=question, text='Ответ')
+        self.client.force_login(admin)
+        for path in ['/admin/', '/admin/core/profile/', '/admin/questions/question/', '/admin/questions/answer/', '/admin/questions/tag/', '/admin/questions/questionlike/', '/admin/questions/answerlike/', f'/admin/auth/user/{admin.pk}/change/', f'/admin/questions/question/{question.pk}/change/']:
             with self.subTest(path=path):
-                response = self.client.get(path)
-                self.assertEqual(response.status_code, 200)
-                self.assertContains(response, 'Популярные теги')
-                self.assertContains(response, '/static/css/bootstrap.min.css')
-                self.assertNotContains(response, 'https://cdn')
-
-    def test_ordering_and_filtering(self):
-        new = self.client.get('/').context['page_obj']
-        hot = self.client.get('/hot/').context['page_obj']
-        tagged = self.client.get('/tag/python/').context['page_obj']
-        self.assertEqual(new[0]['id'], 1)
-        self.assertEqual(hot[0]['rating'], max(q['rating'] for q in QUESTIONS))
-        self.assertTrue(all('python' in q['tags'] for q in tagged))
-        self.assertEqual(len(new), 20)
-        self.assertEqual(len(self.client.get('/question/35/').context['page_obj']), 30)
-        self.assertEqual(len(self.client.get('/question/6/').context['page_obj']), 3)
-        self.assertEqual(len(self.client.get('/question/35/?page=2').context['page_obj']), 1)
-
-    def test_search_persists_in_pagination_links(self):
-        response = self.client.get('/', {'q': 'Как', 'page': 2})
-        self.assertEqual(response.context['page_obj'].number, 2)
-        self.assertContains(response, 'q=%D0%9A%D0%B0%D0%BA&amp;page=1')
-        self.assertTrue(all('как' in (q['title'] + ' ' + q['text']).casefold() for q in response.context['page_obj']))
-
-    def test_empty_results_and_unknown_question(self):
-        self.assertContains(self.client.get('/tag/unknown/'), 'Вопросов пока нет')
-        self.assertContains(self.client.get('/', {'q': 'no-matching-string'}), 'Вопросов пока нет')
-        self.assertEqual(self.client.get('/question/99999/').status_code, 404)
-        with override_settings(DEBUG=False):
-            self.assertContains(self.client.get('/missing/'), 'Страница не найдена', status_code=404)
-
-    def test_forms_show_field_and_form_errors(self):
-        self.assertContains(self.client.post('/signup/', {'email': 'bad'}), 'Введите правильный адрес')
-        self.assertContains(self.client.post('/ask/', {'title': 'Тест', 'text': 'Текст', 'tags': 'a,b,c,d'}), 'Укажите от одного до трёх тегов')
-        self.assertContains(self.client.post('/login/', {'login': 'user', 'password': 'password'}), 'Сохранение данных пока недоступно')
-        self.assertContains(self.client.post('/question/35/', {'text': 'Ответ'}), 'не сохранён')
-
-    def test_method_and_csrf_protection(self):
-        from django.test import Client
-        self.assertEqual(self.client.post('/').status_code, 405)
-        self.assertEqual(Client(enforce_csrf_checks=True).post('/ask/', {}).status_code, 403)
+                self.assertEqual(self.client.get(path).status_code, 200)

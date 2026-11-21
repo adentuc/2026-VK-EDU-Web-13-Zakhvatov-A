@@ -32,9 +32,9 @@ class EnvironmentTests(SimpleTestCase):
             app.mkdir()
             config = app / 'settings.py'
             config.write_text((settings.BASE_DIR / 'application/settings.py').read_text())
-            (root / '.env').write_text('DJANGO_SECRET_KEY=test-file-key\nDJANGO_DEBUG=0\nDJANGO_ALLOWED_HOSTS=env.example\n')
+            (root / '.env.local').write_text('DJANGO_SECRET_KEY=test-file-key\nDJANGO_DEBUG=0\nDJANGO_ALLOWED_HOSTS=env.example\n')
             environment = os.environ.copy()
-            for key in ['DJANGO_SECRET_KEY', 'DJANGO_DEBUG', 'DJANGO_ALLOWED_HOSTS', 'PYTHON_DOTENV_DISABLED']:
+            for key in ['DJANGO_SECRET_KEY', 'DJANGO_DEBUG', 'DJANGO_ALLOWED_HOSTS', 'PYTHON_DOTENV_DISABLED', 'ENV_FILE']:
                 environment.pop(key, None)
             script = (
                 'import runpy, sys; s = runpy.run_path(sys.argv[1]); '

@@ -1,14 +1,28 @@
 services:
+  db:
+    image: postgres:16
+    env_file: .env.docker
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
   web:
     build: .
+    env_file: .env.docker
+    environment:
+      POSTGRES_HOST: db
+    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     ports:
       - "8000:8000"
-    environment:
-      DJANGO_DEBUG: "${DJANGO_DEBUG:-1}"
-      DJANGO_SECRET_KEY: "${DJANGO_SECRET_KEY:-development-only-compose-key}"
-      DJANGO_ALLOWED_HOSTS: "${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1,[::1]}"
+    depends_on:
+      db:
+        condition: service_healthy
     volumes:
       - .:/app
       - media:/app/media
 volumes:
+  postgres_data:
   media:

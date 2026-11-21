@@ -7,3 +7,6 @@ __pycache__
 .env
 media
 static
+
+.env.local
+.env.docker
