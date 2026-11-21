@@ -1,20 +1,28 @@
 # AskSpace
 
-Статическая верстка сервиса вопросов и ответов.
+Сервис вопросов и ответов на Django 5.2 и Bootstrap 5.3.
 
-## Просмотр
+Запуск (Python 3.12+):
 
-Открыть `public/index.html` в браузере. Зависимости устанавливать не нужно.
+```sh
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+python manage.py migrate
+python manage.py runserver
+```
 
-## Страницы
+Или через Docker:
 
-- `index.html` — новые вопросы.
-- `hot.html` — популярные вопросы.
-- `tag.html` — вопросы по тегу.
-- `question.html` — вопрос и ответы.
-- `ask.html` — добавление вопроса.
-- `login.html` — вход.
-- `signup.html` — регистрация.
-- `profile.html` — настройки профиля.
+```sh
+docker compose up --build
+```
 
-Все страницы находятся в `public/`. CSS, JavaScript, Bootstrap и изображения хранятся локально в `public/static/`. Верстка адаптируется для компьютеров, планшетов и телефонов.
+Открыть http://127.0.0.1:8000/ .
+
+Страницы: `/`, `/hot/`, `/tag/python/`, `/question/35/`, `/ask/`, `/login/`, `/signup/`, `/profile/`.
+
+Данные-заглушки: обычно по 3 ответа; у вопроса №35 — 31 ответ для проверки пагинации. Формы данные не сохраняют.
+
+Настройки читаются из `.env` в корне проекта. Переменные окружения имеют приоритет. В Git хранится только `.env.example`.
