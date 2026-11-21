@@ -1,40 +1,38 @@
-from django.http import Http404
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_GET, require_http_methods
 from core.views import form_page
-from .data import QUESTIONS, answers_for
+from .models import Question, Tag
 from .forms import AskForm, AnswerForm
 from .pagination import paginate
 
 
 def listing(request, template, heading, objects, active_tab):
     search = request.GET.get('q', '').strip()[:200]
-    if search:
-        objects = [q for q in objects if search.casefold() in (q['title'] + ' ' + q['text']).casefold()]
-    return render(request, template, {'heading': heading, 'page_obj': paginate(objects, request, 20), 'active_tab': active_tab, 'search': search})
+    return render(request, template, {'heading': heading, 'page_obj': paginate(objects.search(search), request, 20), 'active_tab': active_tab, 'search': search})
+
 
 @require_GET
 def index(request):
-    return listing(request, 'index.html', 'Новые вопросы', sorted(QUESTIONS, key=lambda q: q['created'], reverse=True), 'new')
+    return listing(request, 'index.html', 'Новые вопросы', Question.objects.listing().new(), 'new')
+
 
 @require_GET
 def hot(request):
-    return listing(request, 'hot.html', 'Популярные вопросы', sorted(QUESTIONS, key=lambda q: q['rating'], reverse=True), 'hot')
+    return listing(request, 'hot.html', 'Популярные вопросы', Question.objects.listing().best(), 'hot')
+
 
 @require_GET
 def tag(request, tag):
-    objects = sorted([q for q in QUESTIONS if tag in q['tags']], key=lambda q: q['rating'], reverse=True)
-    return listing(request, 'tag.html', f'Вопросы по тегу {tag}', objects, '')
+    tag = get_object_or_404(Tag, name=tag)
+    return listing(request, 'tag.html', f'Вопросы по тегу {tag}', Question.objects.listing().by_tag(tag.name), '')
 
-@require_http_methods(['GET', 'POST'])
+
+@require_GET
 def question(request, question_id):
-    item = next((q for q in QUESTIONS if q['id'] == question_id), None)
-    if item is None:
-        raise Http404('Вопрос не найден')
-    form = AnswerForm(request.POST if request.method == 'POST' else None)
-    if request.method == 'POST' and form.is_valid():
-        form.add_error(None, 'Ответ не сохранён. Сохранение данных пока недоступно.')
-    return render(request, 'question.html', {'question': item, 'page_obj': paginate(sorted(answers_for(question_id), key=lambda a: (-a['rating'], a['created'])), request, 30), 'form': form, 'submit_label': 'Опубликовать ответ'})
+    item = get_object_or_404(Question.objects.listing(), pk=question_id)
+    page = paginate(item.answers.select_related('author__profile'), request, 30)
+    return render(request, 'question.html', {'question': item, 'page_obj': page, 'form': AnswerForm(), 'submit_label': 'Опубликовать ответ'})
+
 
 @require_http_methods(['GET', 'POST'])
 def ask(request):
