@@ -1,0 +1,2 @@
+{% load static %}
+{% if person.profile.avatar %}<img class="avatar" src="{{ person.profile.avatar.url }}" alt="Аватар {{ person.username }}">{% else %}<img class="avatar" src="{% static 'img/avatar.svg' %}" alt="">{% endif %}

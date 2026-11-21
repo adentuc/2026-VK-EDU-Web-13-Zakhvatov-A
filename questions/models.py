@@ -1,13 +1,20 @@
 from django.conf import settings
 from django.core.validators import RegexValidator
 from django.db import models
-from django.db.models import Count, Q
+from django.db.models import Count, Q, OuterRef, Subquery, Value
+from django.db.models.functions import Coalesce
 from django.urls import reverse
 
 
 class QuestionQuerySet(models.QuerySet):
     def listing(self):
         return self.select_related('author__profile').prefetch_related('tags').annotate(answer_count=Count('answers'))
+
+    def with_votes(self, user):
+        if not user.is_authenticated:
+            return self.annotate(selected=Value(0))
+        votes = QuestionLike.objects.filter(question_id=OuterRef('pk'), user=user).values('value')[:1]
+        return self.annotate(selected=Coalesce(Subquery(votes), 0))
 
     def new(self):
         return self.order_by('-created', '-pk')
@@ -60,6 +67,15 @@ class Question(models.Model):
         return reverse('questions:question', args=[self.pk])
 
 
+class AnswerQuerySet(models.QuerySet):
+    def with_votes(self, user):
+        queryset = self.select_related('author__profile')
+        if not user.is_authenticated:
+            return queryset.annotate(selected=Value(0))
+        votes = AnswerLike.objects.filter(answer_id=OuterRef('pk'), user=user).values('value')[:1]
+        return queryset.annotate(selected=Coalesce(Subquery(votes), 0))
+
+
 class Answer(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='answers', verbose_name='вопрос')
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='answers', verbose_name='автор')
@@ -67,6 +83,12 @@ class Answer(models.Model):
     created = models.DateTimeField('дата создания', auto_now_add=True)
     rating = models.IntegerField('рейтинг', default=0)
     correct = models.BooleanField('правильный ответ', default=False)
+
+    objects = AnswerQuerySet.as_manager()
+
+    def get_absolute_url(self):
+        before = self.question.answers.filter(Q(rating__gt=self.rating) | Q(rating=self.rating, created__lt=self.created) | Q(rating=self.rating, created=self.created, pk__lt=self.pk)).count()
+        return f'{self.question.get_absolute_url()}?page={before // 30 + 1}#answer-{self.pk}'
 
     class Meta:
         ordering = ['-rating', 'created', 'pk']
