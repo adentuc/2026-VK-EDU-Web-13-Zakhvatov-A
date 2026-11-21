@@ -1,24 +1,47 @@
-document.querySelectorAll('[data-vote]').forEach(widget => {
-    const output = widget.querySelector('output');
-    const buttons = [...widget.querySelectorAll('button')];
-    const original = Number(output.value) - Number(widget.dataset.selected || 0);
+async function sendForm(url, data) {
+    const token = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {'X-CSRFToken': token},
+        body: new URLSearchParams(data),
+        credentials: 'same-origin'
+    });
+    const type = response.headers.get('content-type') || '';
+    const result = type.includes('application/json') ? await response.json() : null;
+    if (!response.ok) {
+        throw new Error(result?.message || 'Ошибка запроса: ' + response.status);
+    }
+    return result;
+}
 
-    buttons.forEach(button => button.addEventListener('click', () => {
-        const selected = button.getAttribute('aria-pressed') === 'true'
-            ? 0 : Number(button.dataset.value);
-        widget.dataset.selected = selected;
-        buttons.forEach(item => {
-            item.setAttribute('aria-pressed', String(Number(item.dataset.value) === selected));
-        });
-        output.value = original + selected;
+document.querySelectorAll('[data-vote]').forEach(widget => {
+    const buttons = widget.querySelectorAll('button');
+    buttons.forEach(button => button.addEventListener('click', async () => {
+        buttons.forEach(item => item.disabled = true);
+        try {
+            const result = await sendForm(widget.dataset.url, {value: button.dataset.value});
+            widget.querySelector('output').value = result.rating;
+            buttons.forEach(item => item.setAttribute('aria-pressed', String(Number(item.dataset.value) === result.selected)));
+        } catch (error) {
+            alert(error.message);
+        } finally {
+            buttons.forEach(item => item.disabled = false);
+        }
     }));
 });
 
-// Одновременно может быть выбран один правильный ответ.
 document.querySelectorAll('[data-correct]').forEach(box => {
-    box.addEventListener('change', () => {
-        document.querySelectorAll('[data-correct]').forEach(other => {
-            if (other !== box) other.checked = false;
-        });
+    box.addEventListener('change', async () => {
+        const previous = !box.checked;
+        box.disabled = true;
+        try {
+            const result = await sendForm(box.dataset.url, {question: box.dataset.question, answer: box.dataset.answer, correct: box.checked ? '1' : '0'});
+            document.querySelectorAll('[data-correct]').forEach(item => item.checked = Number(item.dataset.answer) === result.answer_id);
+        } catch (error) {
+            box.checked = previous;
+            alert(error.message);
+        } finally {
+            box.disabled = false;
+        }
     });
 });

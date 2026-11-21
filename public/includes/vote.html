@@ -1,5 +1,5 @@
-<div class="vote" data-vote data-selected="{{ item.selected|default:0 }}" role="group" aria-label="Голосование">
-<button type="button" data-value="1" aria-label="Нравится" aria-pressed="{% if item.selected == 1 %}true{% else %}false{% endif %}">▲</button>
+<div class="vote" data-vote data-url="{% if kind == 'answer' %}{% url 'questions:answer_vote' item.pk %}{% else %}{% url 'questions:question_vote' item.pk %}{% endif %}" role="group" aria-label="Голосование">
+<button type="button" data-value="1" aria-label="Нравится" aria-pressed="{% if item.selected == 1 %}true{% else %}false{% endif %}" {% if not user.is_authenticated %}disabled title="Войдите, чтобы голосовать"{% endif %}>▲</button>
 <output aria-live="polite">{{ item.rating }}</output>
-<button type="button" data-value="-1" aria-label="Не нравится" aria-pressed="{% if item.selected == -1 %}true{% else %}false{% endif %}">▼</button>
+<button type="button" data-value="-1" aria-label="Не нравится" aria-pressed="{% if item.selected == -1 %}true{% else %}false{% endif %}" {% if not user.is_authenticated %}disabled title="Войдите, чтобы голосовать"{% endif %}>▼</button>
 </div>

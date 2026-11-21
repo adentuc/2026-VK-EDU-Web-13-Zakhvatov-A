@@ -2,14 +2,14 @@
 {% endblock %}{% block content %}
 
 <h1>{{ question.title }}</h1>{% include 'includes/question_card.html' %}<h2 class="mt-4 mb-4">Ответы <span class="text-secondary">{{ page_obj.paginator.count }}</span>
-</h2>{% for answer in page_obj %}<article class="question-card">{% include 'includes/vote.html' with item=answer %}<div class="question-body">
+</h2>{% for answer in page_obj %}<article class="question-card" id="answer-{{ answer.pk }}">{% include 'includes/vote.html' with item=answer kind='answer' %}<div class="question-body">
 <p class="excerpt">{{ answer.text }}</p>
 <div class="meta">
-<img class="avatar" src="{% static 'img/avatar.svg' %}" alt="">{{ answer.author }} · {{ answer.created|date:'d.m.Y H:i' }}</div>
+{% include 'includes/avatar.html' with person=answer.author %}{{ answer.author.username }} · {{ answer.created|date:'d.m.Y H:i' }}</div>
 <label class="accepted mt-3">
-<input type="checkbox" data-correct {% if answer.correct %}checked{% endif %}> Правильный ответ</label>
+<input type="checkbox" data-correct data-url="{% url 'questions:correct_answer' %}" data-question="{{ question.pk }}" data-answer="{{ answer.pk }}" {% if answer.correct %}checked{% endif %} {% if user.pk != question.author_id %}disabled title="Только автор вопроса может выбрать ответ"{% endif %}> Правильный ответ</label>
 </div>
-</article>{% endfor %}{% include 'includes/pagination.html' %}<section class="answer-form">
+</article>{% empty %}<p>Пока нет ни одного ответа к этому вопросу.</p>{% endfor %}{% include 'includes/pagination.html' %}<section class="answer-form">
 <h2>Ваш ответ</h2>
-{% include 'includes/form.html' %}</section>
+{% if user.is_authenticated %}{% include 'includes/form.html' %}{% else %}<p>Войдите, чтобы добавить ответ.</p>{% endif %}</section>
 {% endblock %}
