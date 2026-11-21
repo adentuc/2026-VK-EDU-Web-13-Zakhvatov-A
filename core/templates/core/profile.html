@@ -3,5 +3,5 @@
 
 <h1>Настройки профиля</h1>
 
-<img class="profile-avatar" src="{% static 'img/avatar.svg' %}" alt="Текущий аватар">{% include 'includes/form.html' %}
+{% include 'includes/avatar.html' with person=user %}{% include 'includes/form.html' %}
 {% endblock %}
